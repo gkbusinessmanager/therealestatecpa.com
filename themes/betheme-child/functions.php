@@ -1000,3 +1000,126 @@ function ebooks_guides_grid_shortcode($atts) {
     return $output;
 }
 add_shortcode('ebooks_guides_grid', 'ebooks_guides_grid_shortcode');
+
+
+
+
+
+
+
+
+// new ajaxed numberd pagination
+// AJAX handler for numbered pagination
+add_action('wp_ajax_my_ajax_pagination', 'my_ajax_pagination');
+add_action('wp_ajax_nopriv_my_ajax_pagination', 'my_ajax_pagination');
+
+function my_ajax_pagination() {
+    $paged     = isset($_POST['page']) ? absint($_POST['page']) : 1;
+    $instance  = isset($_POST['instance']) ? sanitize_text_field($_POST['instance']) : 'default';
+    $term      = isset($_POST['term']) ? sanitize_text_field($_POST['term']) : '';
+
+    $query_args = [
+				'post_type'           => 'podcasts',
+				'post_status'         => 'publish',
+				'ignore_sticky_posts' => true,
+				'posts_per_page'      => 12,
+				'no_found_rows'       => false,
+				'paged'               => $paged,
+				'orderby'             => 'date',  // order by post date
+				'order'               => 'DESC',  // latest posts first
+		   ];
+
+    // Add taxonomy filter if term is provided
+    if ($term) {
+        $query_args['tax_query'] = [
+            [
+                'taxonomy' => 'category',
+                'field'    => 'slug',
+                'terms'    => $term,
+            ],
+        ];
+    }
+
+    $pod_query = new WP_Query($query_args);
+
+    $attr = [
+        'echo'           => true,
+        'featured_image' => false,
+        'more'           => true,
+    ];
+
+    if ( function_exists('mfn_opts_get') && mfn_opts_get('blog-images') ) {
+        $attr['featured_image'] = 'image';
+    }
+
+    ob_start();
+        echo mfn_content_post($pod_query, false, $attr);
+        $html = ob_get_clean();
+
+    ob_start();
+        my_ajax_pagination_links($pod_query, $paged, $instance);
+        $pagination = ob_get_clean();
+
+    wp_reset_postdata();
+
+    wp_send_json_success([
+        'html'       => $html,
+        'pagination' => $pagination,
+        'instance'   => $instance,
+    ]);
+}
+
+
+// Numbered pagination generator
+function my_ajax_pagination_links($query, $paged, $instance = 'default') {
+    $total_pages = $query->max_num_pages;
+    if ($total_pages <= 1) return;
+
+    // Get an array of page links
+    $pages = paginate_links([
+        'total'     => $total_pages,
+        'current'   => $paged,
+        'type'      => 'array',
+        'prev_text' => '',
+        'next_text' => '',
+        'mid_size'  => 2,
+        'end_size'  => 1,
+    ]);
+
+    if ($pages) {
+        echo '<div class="column one pager_wrapper">';
+            echo '<div class="pager">';
+                echo '<div class="pages">';
+                    foreach ($pages as $page_link) {
+                        // Add custom classes and active state
+                        if (strpos($page_link, 'current') !== false) {
+                            $page_link = str_replace('current', 'page active', $page_link);
+                        } else {
+                            $page_link = str_replace('page-numbers', 'page', $page_link);
+                        }
+
+                        echo $page_link;
+                    }
+                echo '</div>'; // .pages
+
+                // Next page link
+                $next_page = get_next_posts_page_link($total_pages);
+                if ($paged < $total_pages && $next_page) {
+                    echo '<a rel="next" class="next_page" href="' . esc_url($next_page) . '">';
+                    echo 'Next page<i class="icon-right-open" aria-hidden="true"></i>';
+                    echo '</a>';
+                }
+
+            echo '</div>'; // .pager
+        echo '</div>'; // .pager_wrapper
+    }
+}
+
+
+
+add_action('wp_enqueue_scripts', function() {
+    wp_enqueue_script( 'my-ajax-pagination', get_stylesheet_directory_uri() . '/js/ajax-pagination.js?v='.time(), ['jquery'], null, true );
+    wp_localize_script( 'my-ajax-pagination', 'myAjax', [
+        'url' => admin_url( 'admin-ajax.php' )
+    ] );
+});

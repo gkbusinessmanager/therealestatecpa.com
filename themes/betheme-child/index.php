@@ -356,88 +356,71 @@ $translate['item-all'] = mfn_opts_get('translate') ? mfn_opts_get('translate-ite
 			<?php endif; ?>
 
 			<section class="section ph-new-resource-body <?php echo esc_attr($section_class); ?>">
-				<?php if ( get_post_type() == 'podcasts' ) { ?>
-				<div class="ph-new-resource-header podcasts_banner_section">
-					<div class="ph-new-resource-header-inner">
-						<p class="ph-new-resource-breadcrump"><a href="/resources/">RESOURCES</a>  |  <span>PODCASTS</span></p>
-						<h1>Tax Smart Real Estate Investors Podcast & Major League Real Estate podcast </h1>						
-					</div>
-					<div class="ph-new-resource-header-inner">
-						<div class="logo_section_podcast">
-							<?php if( have_rows('social_icon') ): while( have_rows('social_icon') ) : the_row(); ?>
-								<div class="logo_section_podcast_flex">
-									<a href="<?php echo get_sub_field('add_icon_link') ?>"> 
-										<img src="<?php echo get_sub_field('add_icon') ?>" alt="<?php echo get_sub_field('icon_alt_text') ?>"> 
-									</a>
-								</div>
-							<?php endwhile; else : endif; ?>
-						</div> 
-					</div>
-				</div>
-				<?php } ?>
-				<?php if ( get_post_type() == 'videos' ) { ?>
-				<div class="ph-new-resource-header">
-					<div class="ph-new-resource-header-inner">
-						<p class="ph-new-resource-breadcrump"><a href="/resources/">RESOURCES</a>  |  <span>VIDEO</span></p>
-						<h1>Tax Smart Video</h1>						
-					</div>
-				</div>	
-				<?php } ?>
-				<div class="section_wrapper clearfix">
-					
-					<div class="column one column_blog">
-						<div class="mcb-column-inner clearfix">						
-							<div class="blog_wrapper isotope_wrapper hall-resource-items testA">
+				<?php
+				if ( get_post_type() != 'podcasts' ) {
+				?>
+					<?php if ( get_post_type() == 'videos' ) { ?>
+					<div class="ph-new-resource-header">
+						<div class="ph-new-resource-header-inner">
+							<p class="ph-new-resource-breadcrump"><a href="/resources/">RESOURCES</a>  |  <span>VIDEO</span></p>
+							<h1>Tax Smart Video</h1>						
+						</div>
+					</div>	
+					<?php } ?>
+					<div class="section_wrapper clearfix">
+						
+						<div class="column one column_blog">
+							<div class="mcb-column-inner clearfix">						
+								<div class="blog_wrapper isotope_wrapper hall-resource-items testA">
+									<div class="posts_group lm_wrapper <?php echo esc_attr(implode(' ', $blog_classes)); ?>">
+										<?php
 
-								<div class="posts_group lm_wrapper <?php echo esc_attr(implode(' ', $blog_classes)); ?>" this="file">
+											$attr = array(
+												'echo' => true,
+												'featured_image' => false,
+												'filters' => $filters,
+												'more' => true,
+											);
+
+											if ($load_more) {
+												$attr['featured_image'] = 'no_slider';
+											}
+											if (mfn_opts_get('blog-images')) {
+												$attr['featured_image'] = 'image';
+											}
+
+											echo mfn_content_post(false, false, $attr);
+										?>
+									</div>
+
 									<?php
+										if ( mfn_opts_get( 'blog-infinite-scroll' ) ):
 
-										$attr = array(
-											'echo' => true,
-											'featured_image' => false,
-											'filters' => $filters,
-											'more' => true,
-										);
+											echo '<div class="mfn-infinite-load-button">'. mfn_pagination( false, mfn_opts_get('blog-posts') ) .'</div>';
 
-										if ($load_more) {
-											$attr['featured_image'] = 'no_slider';
-										}
-										if (mfn_opts_get('blog-images')) {
-											$attr['featured_image'] = 'image';
-										}
-
-										echo mfn_content_post(false, false, $attr);
+										elseif (function_exists('mfn_pagination')):
+											echo mfn_pagination(false, $load_more);
+										else:
+											?>
+												<div class="nav-next"><?php next_posts_link(__('&larr; Older Entries', 'betheme')) ?></div>
+												<div class="nav-previous"><?php previous_posts_link(__('Newer Entries &rarr;', 'betheme')) ?></div>
+											<?php
+										endif;
 									?>
 								</div>
-
-								<?php
-									if ( mfn_opts_get( 'blog-infinite-scroll' ) ):
-
-										echo '<div class="mfn-infinite-load-button">'. mfn_pagination( false, mfn_opts_get('blog-posts') ) .'</div>';
-
-									elseif (function_exists('mfn_pagination')):
-
-										echo mfn_pagination(false, $load_more);
-
-									else:
-										?>
-											<div class="nav-next"><?php next_posts_link(__('&larr; Older Entries', 'betheme')) ?></div>
-											<div class="nav-previous"><?php previous_posts_link(__('Newer Entries &rarr;', 'betheme')) ?></div>
-										<?php
-									endif;
-								?>
-
 							</div>
 						</div>
-					</div>
 
-				</div>
+					</div>
 				<?php
-				/* if ( get_post_type() == 'podcasts' ) {
-					?><div class="ph-new-resource-header podcasts_banner_section">
+				}
+				
+				if ( get_post_type() == 'podcasts' ) {
+					?>
+					<div class="ph-new-resource-header podcasts_banner_section">
 						<div class="ph-new-resource-header-inner">
 							<p class="ph-new-resource-breadcrump"><a href="/resources/">RESOURCES</a>  |  <span>PODCASTS</span></p>
-							<h1>Major League Real Estate podcast</h1>						
+							<h1>Tax Smart Real Estate Investors Podcast & Major League Real Estate podcast </h1>						
 						</div>
 						<div class="ph-new-resource-header-inner">
 							<div class="logo_section_podcast">
@@ -450,8 +433,78 @@ $translate['item-all'] = mfn_opts_get('translate') ? mfn_opts_get('translate-ite
 								<?php endwhile; else : endif; ?>
 							</div> 
 						</div>
-					</div><?php
-				} */
+					</div>
+					<?php
+					$instances = [
+						['id' => 'first',  'term' => 'tax-smart-rei',  'title' => 'Tax Smart REI'],
+						['id' => 'second', 'term' => 'major-league-rei',  'title' => 'Major League REI']
+					];
+					foreach ($instances as $instance) {
+						?>
+						<div class="section_wrapper clearfix">
+							<div class="column one column_blog">
+								<div class="mcb-column-inner clearfix">						
+									<div class="blog_wrapper isotope_wrapper hall-resource-items testA">
+										<div class="podcast_section-head"><h4 class="entry-title"><?php echo $instance['title']; ?></h4></div>
+										<div class="ajax-pagination posts_group lm_wrapper <?php echo esc_attr(implode(' ', $blog_classes)); ?>" data-instance="<?php echo esc_attr($instance['id']); ?>" data-term="<?php echo esc_attr($instance['term']); ?>">
+
+											<div class="posts_group lm_wrapper <?php echo esc_attr(implode(' ', $blog_classes)); ?>">
+												<?php
+													$paged = 1;
+													$query_args = [
+																	'post_type'           => 'podcasts',
+																	'post_status'         => 'publish',
+																	'ignore_sticky_posts' => true,
+																	'posts_per_page'      => 12,
+																	'no_found_rows'       => false,
+																	'paged'               => $paged,
+																	'orderby'             => 'date',  // order by post date
+																	'order'               => 'DESC',  // latest posts first
+																];
+
+													// Add taxonomy filter if term is provided
+													if ($instance['term']) {
+														$query_args['tax_query'] = [
+															[
+																'taxonomy' => 'category',
+																'field'    => 'slug',
+																'terms'    => $instance['term'],
+															],
+														];
+													}
+
+													$pod_query = new WP_Query($query_args);
+
+													$attr = array(
+														'echo' => true,
+														'featured_image' => false,
+														'filters' => $filters,
+														'more' => true,
+													);
+
+													if ($load_more) {
+														$attr['featured_image'] = 'no_slider';
+													}
+													if (mfn_opts_get('blog-images')) {
+														$attr['featured_image'] = 'image';
+													}
+
+													echo mfn_content_post($pod_query, false, $attr);
+												?>
+											</div>
+
+											<div class="pagination-wrapper" data-instance="<?php echo esc_attr($instance); ?>">
+												<?php my_ajax_pagination_links($pod_query, $paged, $instance); ?>
+											</div>
+
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<?php
+					}
+				}
 				?>
 			</section>
 

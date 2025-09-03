@@ -1022,7 +1022,7 @@ function my_ajax_pagination() {
 				'post_type'           => 'podcasts',
 				'post_status'         => 'publish',
 				'ignore_sticky_posts' => true,
-				'posts_per_page'      => 12,
+				'posts_per_page'      => 6,
 				'no_found_rows'       => false,
 				'paged'               => $paged,
 				'orderby'             => 'date',  // order by post date
